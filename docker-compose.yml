@@ -1,0 +1,14 @@
+services:
+registry:
+  image: registry:2.7
+  container_name: private-registry
+  ports:
+    - 5000:5000
+  restart: always
+  environment:
+    REGISTRY_AUTH: htpasswd
+    REGISTRY_AUTH_HTPASSWD_REALM: "Dat.Tran3 registry"
+    REGISTRY_AUTH_HTPASSWD_PATH: /.htpasswd
+  volumes:
+    - ./data:/var/lib/registry
+    - ~/.htpasswd:/.htpasswd:ro

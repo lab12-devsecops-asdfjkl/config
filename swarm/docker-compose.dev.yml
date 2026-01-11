@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  traefik:
+    ports:
+      - "9999:80"
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true"
+      - "--ping=true"
+      - "--providers.swarm=true"
+      - "--providers.swarm.exposedbydefault=false"
+      - "--providers.swarm.network=dev_app-net"
+      - "--providers.swarm.constraints=Label(`com.docker.stack.namespace`,`dev`)"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--log.level=INFO"
+    deploy:
+      replicas: 1
+
+  frontend:
+    deploy:
+      replicas: 1
+
+  backend:
+    deploy:
+      replicas: 1

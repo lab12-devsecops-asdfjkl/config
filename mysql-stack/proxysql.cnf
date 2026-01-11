@@ -1,0 +1,38 @@
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+    admin_credentials="admin:admin;radmin:radmin"
+    mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables=
+{
+    interfaces="0.0.0.0:6033"
+    
+    monitor_username="monitor"
+    monitor_password="monitor_password"
+    get_server_public_key=1
+
+
+    ping_interval_server_msec=2000
+    ping_timeout_server=500
+}
+
+mysql_servers =
+(    
+    { address="mysql-master", port=3306, hostgroup=10 },
+    { address="mysql-slave",  port=3306, hostgroup=20 }
+)
+
+mysql_users =
+(
+    { username = "user", password = "password", default_hostgroup = 10, active = 1 }
+)
+
+mysql_query_rules =
+(
+    { rule_id=1, active=1, match_digest="^(INSERT|UPDATE|DELETE|ALTER)", destination_hostgroup=10, apply=1 },
+    
+    { rule_id=2, active=1, match_digest="^SELECT.*FOR UPDATE$", destination_hostgroup=10, apply=1 },
+)

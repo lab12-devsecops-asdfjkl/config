@@ -1,0 +1,57 @@
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=ROW --gtid-mode=ON --enforce-gtid-consistency=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - db-net
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: mysql-slave
+    command: --server-id=2 --relay-log=mysql-relay-bin --read_only=1 --gtid-mode=ON --enforce-gtid-consistency=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql-master
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - db-net
+
+  proxysql:
+    image: proxysql/proxysql:3
+    container_name: proxysql
+    ports:
+      - "6033:6033" 
+      - "6032:6032"
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
+        condition: service_healthy
+    networks:
+      - db-net
+      - shared-db-net
+
+networks:
+  db-net:
+  shared-db-net:
+    external: true
